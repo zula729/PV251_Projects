@@ -1,34 +1,34 @@
-from keybert import KeyBERT # type: ignore
-from pathlib import Path
-import fitz  # type: ignore
 import docx
 import json
-import firebase_admin # type: ignore
-from firebase_admin import credentials, db  # type: ignore
-from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS # type: ignore
-import re
-from wordfreq import zipf_frequency # type: ignore
-import yaml
-from transformers import pipeline
-
+import firebase_admin
 import sys
 import io
+import re
+import pdfplumber
+import yaml
+import ocrmypdf
+from wordfreq import zipf_frequency
+from firebase_admin import credentials, db
+from sklearn.feature_extraction.text import CountVectorizer
+from transformers import pipeline
+from keybert import KeyBERT
+from pathlib import Path
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
-
 
 class DocumentProcessor:
     def read_text(self, file_path: Path) -> str:
         if file_path.suffix.lower() == '.pdf':
             return self._read_pdf(file_path)
-        elif file_path.suffix.lower() == '.docx':
+        if file_path.suffix.lower() == '.docx':
             return self._read_docx(file_path)
         return ""
 
-    def _read_pdf(self, path: Path):
-        doc = fitz.open(path)
-        return "".join(page.get_text() for page in doc)
-    
+    def _read_pdf(self, path: Path) -> str:
+        with pdfplumber.open(path) as pdf:
+            return "".join(page.extract_text() or "" for page in pdf.pages)
+
     def _read_docx(self, path: Path):
         doc = docx.Document(path)
         return "".join(para.text for para in doc.paragraphs)
@@ -40,6 +40,8 @@ class KeywordExtractor:
         self.vectorizer = CountVectorizer(
             token_pattern=r"(?u)\b[^\W\d_]{2,}\b"  # words only, no numbers
         )
+        self.ner = pipeline("ner", model="dslim/bert-base-NER", aggregation_strategy="simple")
+
 
     def extract(self, text: str, top_n: int = 5) -> list[str]:
         results = self.model.extract_keywords(
@@ -48,7 +50,7 @@ class KeywordExtractor:
             vectorizer=self.vectorizer,
         )
         return [kw for kw, _score in results]
-    
+
     @staticmethod
     def is_macos_artifact(path: Path) -> bool:
         for part in path.parts:
@@ -60,36 +62,54 @@ class KeywordExtractor:
     @staticmethod
     def folder_id_from_path(path: Path) -> str | None:
         for part in path.parts:
-            if part[0].isdigit():
+            if part[0].isdecimal():
                 return part[:6]
         return None
+    
+    @staticmethod
+    def _clean_name(name: str) -> str:
+        name = re.sub(r'##', '', name)
+        name = re.sub(r'\s+', ' ', name)
+        name = name.strip()
+        return name
+    
+    def extract_authors_from_file(self, text: str) -> str:
+        entities = self.ner(text)
+        names = [
+            self._clean_name(e["word"])
+            for e in entities
+            if e["entity_group"] == "PER"
+        ]
+        names = [n for n in names if len(n) > 1]  # drop single chars
+        return ', '.join(dict.fromkeys(names)) if names else "Unknown Author"
+
+    @staticmethod
+    def extract_authors_from_name(path: Path) -> str:
+        """Parse 'ID-Surname_Name-surname_name-...' folder names into author strings."""
+        for part in path.parts:
+            if part[0].isdecimal():
+                match = re.search(r'^\d+-(.*?)(?:-|$)', part)
+                if match:
+                    return match.group(1).replace('_', ' ').replace('-', ', ')
+        return "Unknown Author"
 
     def extract_from_file(
-        self, file_path: Path, doc_processor: DocumentProcessor) -> tuple[list[str], str] | tuple[None, None]:
+            self,
+            file_path: Path,
+            doc_processor: DocumentProcessor
+        ) -> tuple[list[str], str, str] | tuple[None, None, None]:
         if self.is_macos_artifact(file_path):
-            return None, None
+            return None, None, None
         try:
             folder_id = self.folder_id_from_path(file_path)
-            text = doc_processor.read(file_path)
+            text = doc_processor.read_text(file_path)
             keywords = self.extract(text)
-            return keywords, folder_id
+            ## Tady musim pridat rozlisovani podle skupinovych projektu a single, zatim funguje jen single
+            author = self.extract_authors_from_name(file_path)
+            return keywords, folder_id, author
         except Exception as e:
             print(f"Error processing {file_path.name}: {e}")
             return [], ''
-    
-    def extract_authors_from_folder_name(folder_name: str):
-        # Паттерн: цифры, потом дефис, потом текст до следующего дефиса или конца
-        # Мы ищем то, что идет СРАЗУ после первых цифр и дефиса
-        match = re.search(r'^\d+-(.*?)(?:-|$)', folder_name)
-        
-        if match:
-            raw_names = match.group(1) # Получаем "Pekar_Matej-pekar_boril" или "Burlutskyi_Ivan-Burlutskyi-Beranger..."
-            
-            # Заменяем нижнее подчеркивание на пробел и чистим дефисы
-            # Чтобы из "Pekar_Matej" получить "Pekar Matej"
-            clean_names = raw_names.replace('_', ' ').replace('-', ', ')
-            return clean_names
-        return "Unknown Author"
 
 
 class FirebaseClient:
@@ -103,19 +123,16 @@ class FirebaseClient:
         self.ref = db.reference(self.REF_PATH)
 
     def upload(self, files: list[Path], extractor: KeywordExtractor, doc_processor: DocumentProcessor):
-        for file_path in FILES:
-            keywords, folder_id = extractor.extract_keywords(file_path, doc_processor)
-            if keywords is None:
+        for file_path in files:
+            keywords, folder_id, author = extractor.extract_from_file(file_path, doc_processor)
+            if keywords is None or folder_id is None:
                 print("NONE VALUE TO DATA BASE")
+                print(file_path)
                 continue
-            # db_key = f"{folder_id}"
-            # self.ref.child(db_key).set({
-            #     "keywords": keywords,
-            #     "semester": self.get_semester(file_path),
-            # })
-            self.ref.child(folder_id).set({
+            self.ref.child(f"{folder_id}").set({
                 "keywords": keywords,
                 "semester": self._get_semester(file_path),
+                "author": author
             })
 
     @staticmethod
@@ -124,12 +141,6 @@ class FirebaseClient:
             if part.lower().startswith("podzim"):
                 return part
         return None
-    # def check_counts(self, json_path: str) -> None:
-    #     with open(json_path, 'r', encoding='utf-8') as f:
-    #         json_count = len(json.load(f))
-    #     db_data = self.ref.get()
-    #     db_count = len(db_data) if db_data else 0
-    #     print(f"JSON keys: {json_count} | Firebase keys: {db_count} | Diff: {json_count - db_count}")
 
 
 class KeywordFilter:
@@ -143,7 +154,7 @@ class KeywordFilter:
             return True
         return self._is_real_word(kw)
 
-    def _is_real_word(word: str) -> bool:
+    def _is_real_word(self, word: str) -> bool:
         return zipf_frequency(word, "en") > 2.5 or zipf_frequency(word, "cs") > 2.5 
 
 
@@ -171,7 +182,7 @@ class KeywordClassifier:
         if best_score >= self.threshold:
             return best_label.split(":")[0]
         return "UNDEFINED"
-    
+
     @staticmethod
     def _build_labels(categories: dict[str, list[str]]) -> list[str]:
         labels = []
@@ -186,14 +197,6 @@ class KeywordClassifier:
 
 class ProjectUtils:
     @staticmethod
-    def extract_authors(folder_name: str) -> str:
-        """Parse 'ID-Surname_Name-surname_name-...' folder names into author strings."""
-        match = re.search(r'^\d+-(.*?)(?:-|$)', folder_name)
-        if match:
-            return match.group(1).replace('_', ' ').replace('-', ', ')
-        return "Unknown Author"
-
-    @staticmethod
     def save_keywords_json(
         files: list[Path],
         extractor: KeywordExtractor,
@@ -202,9 +205,9 @@ class ProjectUtils:
     ) -> None:
         keywords_dict: dict[str, list[str]] = {}
         for file_path in files:
-            keywords, folder_id = extractor.extract_from_file(file_path, doc_processor)
+            keywords, folder_id, author= extractor.extract_from_file(file_path, doc_processor)
             if folder_id is not None:
-                keywords_dict[folder_id] = keywords or []
+                keywords_dict[folder_id] = keywords, author or []
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(keywords_dict, f, ensure_ascii=False, indent=2)
 
@@ -248,21 +251,41 @@ class Pipeline:
         ]
         return self.classifier.categorize(all_keywords, categories)
 
+def repair_pdf(input_path: Path, output_path: Path) -> None:
+        ocrmypdf.ocr(
+            input_path,
+            output_path,
+            force_ocr=True,       # re-OCR even if text layer exists
+            language="eng+ces",   # English + Czech
+            deskew=True,
+        )
+
+def repair_all_pdfs(self, root_dir: Path) -> None:
+    repaired_dir = root_dir / "repaired"
+    repaired_dir.mkdir(exist_ok=True)
+    for pdf in root_dir.rglob("*.pdf"):
+        out = repaired_dir / pdf.name
+        try:
+            self.repair_pdf(pdf, out)
+            print(f"Repaired: {pdf.name}")
+        except Exception as e:
+            print(f"Failed: {pdf.name} — {e}")
+
 
 def main() -> None:
     pipeline = Pipeline(
         root_dir=Path(r'C:\Users\azhar\Desktop\visualization'),
         cred_path="credentials.json",
     )
-    # -- quick author-extraction smoke test --
-    folders = [
-        "525077-Pekar_Matej-pekar_boril",
-        "525221-Lodnanova_Michaela-project",
-        "532094-Burlutskyi_Ivan-Burlutskyi-Beranger-SelimcanBicer",
-    ]
-    for f in folders:
-        print(f"Folder: {f} -> Author: {ProjectUtils.extract_authors(f)}")
-
+    # pipeline.run_upload()
+    pipeline.run_export_json()
+    # files = pipeline.files
+    # repair_pdf(r"C:\Users\azhar\Desktop\visualization\podzim2024\524688-Kraus_Jozef-FeelViz\Visualization_Short_Report.pdf", r"C:\Users\azhar\Desktop\repair\report_fixed.pdf")
+    # for f in folders:
+    #     print(f"Folder: {f} -> Author: {ProjectUtils.extract_authors(f)}")
+    # file_path_name_text = r"C:\Users\azhar\Desktop\visualization\podzim2025\484353-Kutalek_Jiri-ProjectFiles_Group4_Demovic_Kutalek_Polak\pv251_footballviz-main\report.pdf"
+    # a = pipeline.utils.extract_authors_from_file(Path(file_path_name_text), pipeline.doc_processor)
+    # print(a)
     # Uncomment the steps you want to run:
     # pipeline.run_export_json()
     # pipeline.run_upload()
