@@ -1,7 +1,7 @@
-import image from "./assets/image.png"
+import image from "../assets/image.png"
 import Label from "./Label";
 
-import type { CardType  } from "./types/CardType ";
+import type { CardType  } from "../types/CardType";
 
 type CardProps = {
   card: CardType 
