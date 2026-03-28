@@ -5,9 +5,12 @@ type FilterGroupProps = {
 }
 
 function FilterGroup({ items, selected, onToggle }: FilterGroupProps) {
+    const formatLabel = (item: string) => 
+        item.charAt(0).toUpperCase() + item.slice(1).toLowerCase().replace(/_/g, " ");
+    const sortedItems = [...items].sort((a, b) => a.localeCompare(b)); 
     return (
         <div className="flex flex-wrap gap-2 mt-3 items-center">
-            {items.map(item => (
+            {sortedItems.map(item => (
                 <button
                     key={item}
                     onClick={() => onToggle(item)}
@@ -17,7 +20,7 @@ function FilterGroup({ items, selected, onToggle }: FilterGroupProps) {
                             : "bg-gray-200 text-black hover:bg-gray-300"
                         }`}
                 >
-                    {item}
+                    {formatLabel(item)}
                 </button>
             ))}
         </div>
