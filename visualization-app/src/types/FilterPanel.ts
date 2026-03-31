@@ -5,15 +5,6 @@ export type FilterPanelProps = {
     onToggle: (category: string) => void;
     onClear: () => void;
     cards: CardType[];
+    techMode: "OR" | "AND";
+    onTechModeChange: (mode: "OR" | "AND") => void;
 }
-export type FilterState = {
-  tags: string[];
-  technology: string[];
-  semester: string[];
-};
-
-export type FilterMode = {
-  tags: "AND" | "OR";
-  technology: "AND" | "OR";
-  semester: "AND" | "OR";
-};

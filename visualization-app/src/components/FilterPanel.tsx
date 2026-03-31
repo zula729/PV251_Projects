@@ -7,18 +7,17 @@ import { Trash2 } from "lucide-react";
 function FilterPanel({ selected, onToggle, onClear, cards = [] }: FilterPanelProps) {
     const [isOpen, setIsOpen] = useState(false);
     const technologyFrequency = useMemo(() => {
-
-    const freq: Record<string, number> = {};
-    cards.forEach(card => {
-        card.technology?.forEach(tech => {
-            const match = TECHNOLOGY.find(t => t.toLowerCase() === tech.trim().toLowerCase());
-            if (match) {
-                freq[match] = (freq[match] ?? 0) + 1;
-            }
+        const freq: Record<string, number> = {};
+        cards.forEach(card => {
+            card.technology?.forEach(tech => {
+                const match = TECHNOLOGY.find(t => t.toLowerCase() === tech.trim().toLowerCase());
+                if (match) {
+                    freq[match] = (freq[match] ?? 0) + 1;
+                }
+            });
         });
-    });
     return freq;
-}, [cards]);
+    }, [cards]);
 
 const sortedTechnology = useMemo(() => {
     const sorted = [...TECHNOLOGY].sort((a, b) => {
