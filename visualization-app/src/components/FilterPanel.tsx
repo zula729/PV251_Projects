@@ -4,7 +4,7 @@ import { TAGS, TECHNOLOGY, SEMESTR } from "../types/filterOptions";
 import type { FilterPanelProps } from "../types/FilterPanel";
 import { Trash2 } from "lucide-react";
 
-function FilterPanel({ selected, onToggle, onClear, cards = [] }: FilterPanelProps) {
+function FilterPanel({ selected, onToggle, onClear, cards = [], techMode, onTechModeChange }: FilterPanelProps) {
     const [isOpen, setIsOpen] = useState(false);
     const technologyFrequency = useMemo(() => {
         const freq: Record<string, number> = {};
@@ -42,9 +42,28 @@ const sortedTechnology = useMemo(() => {
                 <div className="pt-4 font-semibold"> Categories
                     <FilterGroup items={TAGS} selected={selected} onToggle={onToggle} />
                 </div>
-                <div className="pt-4 font-semibold"> Technology
-                    <FilterGroup items={sortedTechnology} selected={selected} onToggle={onToggle} sorted={false} />
+                <div className="pt-4 font-semibold flex items-center gap-3">
+                    Technology
+                    <div className="flex text-xs font-medium rounded-lg overflow-hidden border border-gray-300">
+                        <button
+                            onClick={() => onTechModeChange("OR")}
+                            className={`px-2 py-0.5 transition-colors ${
+                                techMode === "OR" ? "bg-amber-200 text-black" : "bg-white text-gray-500 hover:bg-gray-100"
+                            }`}
+                        >
+                            OR
+                        </button>
+                        <button
+                            onClick={() => onTechModeChange("AND")}
+                            className={`px-2 py-0.5 transition-colors ${
+                                techMode === "AND" ? "bg-amber-200 text-black" : "bg-white text-gray-500 hover:bg-gray-100"
+                            }`}
+                        >
+                            AND
+                        </button>
+                    </div>
                 </div>
+                <FilterGroup items={sortedTechnology} selected={selected} onToggle={onToggle} sorted={false} />
                 <div className="pt-4 font-semibold"> Semester
                     <FilterGroup items={SEMESTR} selected={selected} onToggle={onToggle} />
                 </div>
