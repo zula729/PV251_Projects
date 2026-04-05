@@ -161,8 +161,8 @@ class FirebaseClient:
                 continue
             self.ref.child(f"{folder_id}").update({
                 "semester": self._get_semester(file_path),
-                "author": author, 
-                "technology": technology, 
+                "author": author,
+                "technology": technology,
                 "tags": list(tags)
             })
 
@@ -213,26 +213,87 @@ class FirebaseClient:
                 self.ref.child(folder_id).delete()
                 print(f"Deleted: {folder_id}")
 
+    def clean_keywords_by_yaml(self, yaml_path: str, dry_run: bool = True) -> None:
+
+        categories = ProjectUtils.load_categories(yaml_path)
+        allowed: set[str] = set()
+        for examples in categories.values():
+            if isinstance(examples, list):
+                allowed.update(examples)
+
+        print(f"\n{'='*60}")
+        print(f"[{'DRY RUN' if dry_run else 'LIVE RUN'}] Чистим keywords по: {yaml_path}")
+        print(f"Допустимых слов в YAML: {len(allowed)}")
+        print(f"{'='*60}\n")
+
+        db_data = self.fetch_all()
+        total_removed = 0
+
+        for folder_id, entry in db_data.items():
+            kw_list: list = entry.get("keywords", [])
+            if not isinstance(kw_list, list) or not kw_list:
+                continue
+
+            to_remove = [kw for kw in kw_list if kw not in allowed]
+            if not to_remove:
+                continue
+
+            author = entry.get("author", "—")
+            semester = entry.get("semester", "—")
+
+            print(f" {folder_id}  |  {author}  |  {semester}")
+            for kw in to_remove:
+                print(f"'{kw}'")
+            print()
+
+            total_removed += len(to_remove)
+
+            if not dry_run:
+                cleaned = [kw for kw in kw_list if kw in allowed]
+                self.ref.child(folder_id).update({"keywords": cleaned})
+
+        if dry_run:
+            print("Run with dry_run=False to apply these changes to Firebase.")
+        else:
+            print("Done")
+        
+
+    def find_missing_from_db(self, root_dir: Path) -> None:
+
+        local_ids: dict[str, str] = {}
+        for folder in root_dir.iterdir():
+            if folder.is_dir() and folder.name[0].isdecimal():
+                folder_id = folder.name[:6]
+                local_ids[folder_id] = folder.name
+
+        db_data = self.fetch_all()
+        db_ids = set(db_data.keys())
+
+        missing = {fid: name for fid, name in local_ids.items() if fid not in db_ids}
+        present = {fid: name for fid, name in local_ids.items() if fid in db_ids}
+
+        print(f"\n{'='*60}")
+        print(f"Папок на диске:      {len(local_ids)}")
+        print(f"Записей в Firebase:  {len(db_ids)}")
+        print(f"{'='*60}")
+
+        if missing:
+            print(f"\n❌ НЕТ в базе ({len(missing)}):")
+            for fid, name in sorted(missing.items()):
+                print(f"   {fid}  →  {name}")
+        else:
+            print("\n✅ Все папки есть в базе!")
+
+        print(f"\n✅ Есть в базе ({len(present)}):")
+        for fid, name in sorted(present.items()):
+            print(f"   {fid}  →  {name}")
+        print(f"{'='*60}\n")
+
+        return missing  # удобно для дальнейшей обработки
 
 class KeywordClassifier:
-    def __init__(self, model_name: str = "cross-encoder/nli-deberta-v3-large", threshold: float = 0.5):
-        self.classifier = pipeline("zero-shot-classification", model=model_name)
-        self.threshold = threshold
-        self._cache: dict[str, str] = {}  # simple dict cache
-
-    @staticmethod
-    def _build_labels(categories: dict[str, list[str]]) -> list[str]:
-        labels = []
-        for cat, words in categories.items():
-            if words:
-                label = f"{cat}: {', '.join(str(w) for w in words)}"
-            else:
-                label = cat
-            labels.append(label)
-        return labels
-
-    def run_categorize(self, yaml_path: str) -> None:
-        db_data = self.firebase.fetch_all()
+    def run_categorize(self, yaml_path: str, firebase: "FirebaseClient") -> None:
+        db_data = firebase.fetch_all()
 
         kw1 = set()
         for _, data in db_data.items():
@@ -240,7 +301,7 @@ class KeywordClassifier:
             if isinstance(kw_list, list):
                 kw1.update(kw_list)
 
-        tags = self.utils.load_categories(yaml_path)
+        tags = ProjectUtils.load_categories(yaml_path)
 
         kw2: set[str] = set()
         for _, data in tags.items():
@@ -249,25 +310,19 @@ class KeywordClassifier:
 
         keywords_not_in_tags: set[str] = kw1 - kw2
 
-        final_result: dict[str, list[str]] = {
-            cat: list(examples) if examples else []
-            for cat, examples in tags.items()
-        }
+        final_result = {cat: list(ex) if ex else [] for cat, ex in tags.items()}
         final_result["UNDEFINED"] = []
-
-        # result without existing examples — only newly classified words
-        result_clean: dict[str, list[str]] = {cat: [] for cat in tags}
+        result_clean = {cat: [] for cat in tags}
         result_clean["UNDEFINED"] = []
 
-        # hypotheses se sestaví JEDNOU před hlavním looopem
         hypotheses = [
-            f"This text is about {cat}, such as {', '.join(examples if isinstance(examples, list) else [])}."
-            for cat, examples in tags.items()
+            f"This text is about {cat}, such as {', '.join(ex if isinstance(ex, list) else [])}."
+            for cat, ex in tags.items()
         ]
         cat_names = list(tags.keys())
 
         for kw in keywords_not_in_tags:
-            result = self.classifier.classifier(
+            result = self.classifier(                             # ✅ убрали лишний .classifier
                 kw,
                 candidate_labels=hypotheses,
                 multi_label=False,
@@ -284,7 +339,7 @@ class KeywordClassifier:
             result_clean[chosen].append(kw)
             print(f"{kw} → {chosen} (score: {best_score:.2f})")
 
-        self.utils.save_categories_yaml(result_clean)
+        ProjectUtils.save_categories_yaml(result_clean)
 
 
 class ProjectUtils:
@@ -329,8 +384,8 @@ class ProjectUtils:
         ocrmypdf.ocr(
             input_path,
             output_path,
-            force_ocr=True,       # re-OCR even if text layer exists
-            language="eng+ces",   # English + Czech
+            force_ocr=True,
+            language="eng+ces",
             deskew=True,
         )
 
@@ -391,6 +446,12 @@ class Pipeline:
 
     def run_delete_empty(self) -> None:
         self.firebase.delete_empty_keywords()
+    
+    def run_clean_keywords(self, yaml_path: str = "tags.yaml", dry_run: bool = True) -> None:
+        self.firebase.clean_keywords_by_yaml(yaml_path, dry_run=dry_run)
+    
+    def run_find_missing(self) -> dict:
+        return self.firebase.find_missing_from_db(self.root_dir)
 
 
 def main() -> None:
@@ -398,8 +459,7 @@ def main() -> None:
         root_dir=Path(r'C:\Users\azhar\Desktop\visualization'),
         cred_path="credentials.json",
     )
-    # pipeline.run_upload()
-    # pipeline.run_delete_empty()
+    pipeline.run_find_missing()
 
 if __name__ == "__main__":
     main()

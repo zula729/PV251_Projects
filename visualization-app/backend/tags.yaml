@@ -29,11 +29,6 @@ FOOD:
   - italian
   - waitress
 
-browser:
-  - browser
-  - google
-  - firefox
-
 TRANSPORT:
   - race
   - traffic
@@ -103,6 +98,8 @@ DEMOGRAPHY:
   - girlfriend
   - wife
   - overcrowding
+  - crime
+  - police
 
 SPORT:
   - bike
@@ -126,18 +123,14 @@ SCIENCE:
   - seismic
   - mathematical
   - lab
+  - computational
+  - graphs
+  - informatics
 
 DISASTER:
   - accidents
   - earthquakes
-
-DATA_SCIENCE:
-  - pandas
-  - trends
-  - graphs
-  - data
-  - analysis
-  - randomized
+  - pollution
 
 MUSIC:
   - spotify
@@ -188,34 +181,10 @@ GEOGRAPHY:
   - tourists
   - apartment
 
-TIME:
-  - daily
-  - yearly
-  - decades
-  - june
-  - july
-  - tonight
-
 SPACE:
   - nasa
   - meteorites
   - meteors
-
-TECHNOLOGY:
-  - software
-  - developer
-  - tools
-  - technologies
-  - processors
-  - engineering
-  - computational
-  - graphs
-  - informatics
-  - github
-  - wikimedia
-  - downloaded
-  - designers
-  - lollipop
 
 ENERGY:
   - solar
@@ -236,3 +205,5 @@ BUSINESS:
   - rich
   - valuable
   - cheapest
+  - software
+  - developer
