@@ -19,12 +19,12 @@ function SpecifiedDomainRadarChart() {
     }, [cards]);
 
   return (
-    <ResponsiveContainer width="100%" aspect={1}>
+    <ResponsiveContainer width="60%" aspect={1}>
       <RadarChart outerRadius="80%" data={data}>
         <PolarGrid />
-        <PolarAngleAxis dataKey="topic" />  {/* ← было "subject" */}
+        <PolarAngleAxis dataKey="topic" /> 
         <PolarRadiusAxis />
-        <Radar name="Технологии" dataKey="count" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />  {/* ← было "A" */}
+        <Radar name="" dataKey="count" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />
         <Legend />
       </RadarChart>
     </ResponsiveContainer>

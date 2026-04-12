@@ -60,7 +60,6 @@ MEDICINE:
   - cdc
   - coronavirus
   - migraine
-  - pcr
   - genomic
   - bioinformatics
   - cloning
@@ -154,13 +153,11 @@ GAMES:
   - match
 
 CZECHIA:
-  - czechia
   - czech
   - bohemia
   - brno
 
 SLOVAKIA:
-  - slovakia
   - slovak
 
 GEOGRAPHY:
@@ -201,3 +198,8 @@ BUSINESS:
   - cheapest
   - software
   - developer
+
+ELECTION:
+  - parties
+  - elections
+  - candidates

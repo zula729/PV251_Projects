@@ -1,5 +1,5 @@
 import SpecifiedDomainRadarChart from "../visualizations/SpecifiedDomainRadarChart";
-import SimpleTreemap from "../visualizations/SimpleTreemap";
+// import SimpleTreemap from "../visualizations/SimpleTreemap";
 
 
 export function Visualization() {
@@ -7,7 +7,7 @@ export function Visualization() {
         <main className="flex-1 p-2 ml-4">
             <h2 className="text-4xl font-semibold ">Visualization</h2>
             <SpecifiedDomainRadarChart />
-            <SimpleTreemap/>
+            {/* <SimpleTreemap/> */}
         </main>
   );
 }
