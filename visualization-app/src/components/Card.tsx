@@ -17,9 +17,9 @@ type LabelWithType = {
 function Card({ card } : CardProps) {
     const [expanded, setExpanded] = useState(false)
     const allLabels: LabelWithType[] = [
-        ...(card.keywords ?? []).sort((a, b) => a.localeCompare(b)).map(kw => ({ text: kw, type: "keyword" as const })),
         ...(card.tags ?? []).sort((a, b) => a.localeCompare(b)).map(tag => ({ text: tag, type: "tag" as const })),
         ...(card.technology ?? []).sort((a, b) => a.localeCompare(b)).map(tech => ({ text: tech, type: "technology" as const })),
+        ...(card.keywords ?? []).sort((a, b) => a.localeCompare(b)).map(kw => ({ text: kw, type: "keyword" as const })),
         ].filter(label => label !== undefined && label.text && label.text.trim() !== "");
     const [isOverflowing, setIsOverflowing] = useState(false);
     const labelsRef = useRef<HTMLDivElement>(null);

@@ -47,7 +47,7 @@ const sortedTechnology = useMemo(() => {
             <div className={`overflow-hidden transition-all duration-400 ease-in-out
                 ${isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}`}>
                 <div className="pt-4 font-semibold"> Categories
-                    <FilterGroup items={TAGS} selected={selected} onToggle={onToggle} />
+                    <FilterGroup items={TAGS} selected={selected} onToggle={onToggle} type={"tag"}/>
                 </div>
                 <div className="pt-4 font-semibold flex items-center gap-3 ">
                     Technology
@@ -74,9 +74,9 @@ const sortedTechnology = useMemo(() => {
                         </button>
                     </div>
                 </div>
-                <FilterGroup items={sortedTechnology} selected={selected} onToggle={onToggle} sorted={false} />
+                <FilterGroup items={sortedTechnology} selected={selected} onToggle={onToggle} sorted={false} type={"technology"} />
                 <div className="pt-4 font-semibold"> Semester
-                    <FilterGroup items={SEMESTR} selected={selected} onToggle={onToggle} />
+                    <FilterGroup items={SEMESTR} selected={selected} onToggle={onToggle} type={"semestr"} />
                 </div>
                 
             </div>

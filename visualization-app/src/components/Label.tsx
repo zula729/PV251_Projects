@@ -4,7 +4,7 @@ type LabelProps = {
 }
 
 const colorMap = {
-    keyword:    "bg-blue-50 text-blue-600",
+    keyword:    "bg-gray-100 text-gray-600",
     tag:        "bg-amber-50 text-amber-600",
     technology: "bg-green-50 text-green-600",
 }
