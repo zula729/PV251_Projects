@@ -6,7 +6,7 @@ if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-root_dir = Path(r'C:\Users\azhar\Desktop\vizualization_Podzim2025')
+root_dir = Path(r'C:\Users\azhar\Desktop\visualization_with_images')  # Change this to your target directory
 
 def unzip_all_automatically(directory: Path):
     for zip_path in directory.rglob('*.zip'):
