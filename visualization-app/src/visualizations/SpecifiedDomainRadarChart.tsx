@@ -7,36 +7,55 @@ import {
     PolarRadiusAxis,
     ResponsiveContainer
 } from 'recharts';
-import { TAGS } from '../types/filterOptions';
-import { useMemo } from 'react';
+import { TAGS, SEMESTR } from '../types/filterOptions';
+import { useMemo, useState } from 'react';
 import { useCards } from '../hooks/useCards';
-
 function SpecifiedDomainRadarChart() {
     const cards = useCards();
+    const [selectedTags, setSelectedTags] = useState<string[]>(TAGS);
+    const [selectedSemesters, setSelectedSemesters] = useState<string[]>(SEMESTR);
+
     const data = useMemo(() => {
-        const freq: Record<string, number> = {};
+        const freq: Record<string, Record<string, number>> = {};
         cards.forEach((card) => {
-            card.tags?.forEach((tech) => {
-                const match = TAGS.find((t) => t.toLowerCase() === tech.trim().toLowerCase());
-                if (match) {
-                    freq[match] = (freq[match] ?? 0) + 1;
+            card.tags?.forEach((tag) => {
+                const matchTag = TAGS.find((t) => t.toLowerCase() === tag.trim().toLowerCase());
+                const semester = card.semestr ?? 'unknown';
+                if (
+                    matchTag &&
+                    selectedTags.includes(matchTag) &&
+                    selectedSemesters.includes(semester)
+                ) {
+                    if (!freq[matchTag]) freq[matchTag] = {};
+                    freq[matchTag][semester] = (freq[matchTag][semester] ?? 0) + 1;
                 }
             });
         });
-        return Object.entries(freq).map(([topic, count]) => ({ topic, count }));
-    }, [cards]);
+
+        return Object.entries(freq)
+            .map(([tag, semesters]) => ({ tag, ...semesters }))
+            .sort((a, b) => a.tag.localeCompare(b.tag));
+    }, [cards, selectedTags, selectedSemesters]);
 
     return (
-        <ResponsiveContainer width="60%" aspect={1}>
+        <ResponsiveContainer width="60%" height={600}>
             <RadarChart outerRadius="80%" data={data}>
                 <PolarGrid />
-                <PolarAngleAxis dataKey="topic" />
-                <PolarRadiusAxis />
-                <Radar name="" dataKey="count" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />
+                <PolarAngleAxis dataKey="tag" />
+                <PolarRadiusAxis angle={30} domain={[0, 9]} />
+                {SEMESTR.map((semester, i) => (
+                    <Radar
+                        key={semester}
+                        name={semester}
+                        dataKey={semester}
+                        stroke={i === 0 ? '#6366f1' : '#10b981'}
+                        fill={i === 0 ? '#6366f1' : '#10b981'}
+                        fillOpacity={0.6}
+                    />
+                ))}
                 <Legend />
             </RadarChart>
         </ResponsiveContainer>
     );
 }
-
 export default SpecifiedDomainRadarChart;

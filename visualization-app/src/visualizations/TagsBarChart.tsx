@@ -8,11 +8,13 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+
 import { TAGS, SEMESTR } from '../types/filterOptions';
 import { useMemo, useState } from 'react';
 import { useCards } from '../hooks/useCards';
 
-function SimpleBarChart() {
+// #endregion
+const TagsStackedBarChart = () => {
     const cards = useCards();
     const [selectedTags, setSelectedTags] = useState<string[]>(TAGS);
     const [selectedSemesters, setSelectedSemesters] = useState<string[]>(SEMESTR);
@@ -50,33 +52,33 @@ function SimpleBarChart() {
             prev.includes(semester) ? prev.filter((s) => s !== semester) : [...prev, semester]
         );
     };
-
     return (
-        <div>
-            <div>
-                <div></div>
-
-                <div></div>
-            </div>
-            <ResponsiveContainer width="90%" height={400}>
-                <BarChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="tag" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    {SEMESTR.map((semester, i) => (
-                        <Bar
-                            key={semester}
-                            dataKey={semester}
-                            fill={i === 0 ? '#8884d8' : '#82ca9d'}
-                            radius={[10, 10, 0, 0]}
-                        />
-                    ))}
-                </BarChart>
-            </ResponsiveContainer>
-        </div>
+        <ResponsiveContainer width="90%" height={400}>
+            <BarChart
+                data={data}
+                margin={{
+                    top: 20,
+                    right: 30,
+                    left: 0,
+                    bottom: 5
+                }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="tag" angle={-45} textAnchor="end" height={80} niceTicks="snap125" />
+                <YAxis width={50} niceTicks="snap125" />
+                <Tooltip />
+                <Legend />
+                {SEMESTR.map((semester, i) => (
+                    <Bar
+                        dataKey={semester}
+                        stackId="a"
+                        fill={i === 0 ? '#8884d8' : '#82ca9d'}
+                        background
+                    />
+                ))}
+            </BarChart>
+        </ResponsiveContainer>
     );
-}
+};
 
-export default SimpleBarChart;
+export default TagsStackedBarChart;
