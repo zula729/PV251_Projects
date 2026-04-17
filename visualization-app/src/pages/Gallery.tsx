@@ -4,6 +4,7 @@ import FilterPanel from '../components/FilterPanel';
 import { useState } from 'react';
 import { useCards } from '../hooks/useCards';
 import { TECHNOLOGY } from '../types/filterOptions';
+import { Link } from 'react-router';
 
 export function Gallery() {
     const cards = useCards();
@@ -69,7 +70,17 @@ export function Gallery() {
             </div>
             <div className="flex flex-row pt-2 gap-8 flex-wrap mt-4">
                 {filtered.map((c) => (
-                    <Card key={c.id} card={c} />
+                    <Link
+                        to={c.name}
+                        className="block transition-transform hover:scale-[1.02]"
+                        onClick={(e) => {
+                            if ((e.target as HTMLElement).closest('button')) {
+                                e.preventDefault();
+                            }
+                        }}
+                    >
+                        <Card key={c.id} card={c} />
+                    </Link>
                 ))}
             </div>
         </main>

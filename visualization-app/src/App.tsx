@@ -3,7 +3,8 @@ import Footer from './components/Footer';
 import { Home } from './pages/Home';
 import { Gallery } from './pages/Gallery';
 import { Visualization } from './pages/Visualization';
-import { HashRouter, Routes, Route } from 'react-router';
+import { HashRouter, Routes, Route, Navigate } from 'react-router';
+import { ProjectDetails } from './components/ProjectDetails';
 
 function App() {
     return (
@@ -15,10 +16,11 @@ function App() {
                     </div>
                     <main className="flex-1">
                         <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/home" element={<Home />} />
-                            <Route path="/gallery" element={<Gallery />} />
-                            <Route path="/visualization" element={<Visualization />} />
+                            <Route path="/" element={<Navigate to="/home" replace />} />
+                            <Route path="home" element={<Home />} />
+                            <Route path="gallery" element={<Gallery />} />
+                            <Route path="visualization" element={<Visualization />} />
+                            <Route path="/gallery/:name" element={<ProjectDetails />} />
                         </Routes>
                     </main>
                 </div>
