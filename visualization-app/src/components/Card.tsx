@@ -48,7 +48,14 @@ function Card({ card }: CardProps) {
                     <div className="flex flex-col pl-2 pr-2 pt-2">
                         <div className="h-25">
                             <h2 className="text-xl font-semibold">{card.name}</h2>
-                            <p className="text-sm text-gray-500">{card.author}</p>
+                            <p className="text-sm text-gray-500">
+                                {card.author.map((author, index) => (
+                                    <span key={index}>
+                                        {author}
+                                        {index < card.author.length - 1 && ', '}
+                                    </span>
+                                ))}
+                            </p>
                             <p className="text-m">{card.semestr}</p>
                         </div>
                         <hr className="mt-3 mb-2 border-gray-300"></hr>
