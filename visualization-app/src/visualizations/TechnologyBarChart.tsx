@@ -55,7 +55,7 @@ const TechnologyStackedBarChart = () => {
         );
     };
     return (
-        <ResponsiveContainer width="95%" height={400}>
+        <ResponsiveContainer width="95%" height={500}>
             <BarChart
                 data={data}
                 margin={{
@@ -70,7 +70,7 @@ const TechnologyStackedBarChart = () => {
                     dataKey="tech"
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={100}
                     niceTicks="snap125"
                 />
                 <YAxis width={50} domain={[0, 65]} niceTicks="snap125" />
