@@ -1,4 +1,3 @@
-import image from '../assets/image.png';
 import Label from './Label';
 
 import type { CardType } from '../types/CardType';
@@ -44,7 +43,7 @@ function Card({ card }: CardProps) {
         <div className="rounded-2xl bg-white">
             <div className="flex flex-col">
                 <div className={`border border-gray-400 shadow-lg/20 rounded-xl w-90 pb-3`}>
-                    <img className="object-cover rounded-t-xl w-full h-40" src={image} />
+                    <img className="object-cover rounded-t-xl w-full h-40" src={card.images[0]} />
                     <div className="flex flex-col pl-2 pr-2 pt-2">
                         <div className="h-25">
                             <h2 className="text-xl font-semibold">{card.name}</h2>

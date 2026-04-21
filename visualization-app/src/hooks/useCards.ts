@@ -17,7 +17,8 @@ export function useCards() {
                     name: entry.name,
                     semestr: entry.semester,
                     tags: entry.tags,
-                    technology: entry.technology?.map((t: string) => t.trim())
+                    technology: entry.technology?.map((t: string) => t.trim()),
+                    images: entry.images ?? []
                 }));
                 setCard(parsed);
             } else {

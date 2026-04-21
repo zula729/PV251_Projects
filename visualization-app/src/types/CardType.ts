@@ -6,5 +6,5 @@ export type CardType = {
     semestr: string;
     tags: string[];
     technology: string[];
-    image?: string;
+    images: string[];
 };

@@ -12,25 +12,6 @@ function ProjectDetails() {
     if (!card) {
         return <div>No project</div>;
     }
-    const images = [
-        {
-            id: 1,
-            url: 'https://images.pexels.com/photos/29089597/pexels-photo-29089597/free-photo-of-stunning-autumn-beach-sunset-with-waves.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-        },
-        { id: 2, url: 'https://images.pexels.com/photos/691668/pexels-photo-691668.jpeg' },
-        {
-            id: 3,
-            url: 'https://images.pexels.com/photos/2049422/pexels-photo-2049422.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-        },
-        {
-            id: 4,
-            url: 'https://images.pexels.com/photos/325044/pexels-photo-325044.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-        },
-        {
-            id: 5,
-            url: 'https://images.pexels.com/photos/1485894/pexels-photo-1485894.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-        }
-    ];
 
     return (
         <main className="flex-1 p-8 ml-4">
@@ -38,25 +19,24 @@ function ProjectDetails() {
             <div className="w-full max-w-5xl">
                 <div className="relative w-full bg-gray-300 rounded-lg overflow-hidden mb-6">
                     <img
-                        src={images[currentImageIndex].url}
+                        src={card.images[currentImageIndex]}
                         alt={`carousel-image-${currentImageIndex}`}
                         className="w-full h-120 object-cover"
                     />
                 </div>
 
                 <div className="flex gap-3 overflow-x-auto pb-2">
-                    {images.map((image, index) => (
+                    {card.images.map((image, index) => (
                         <button
-                            key={image.id}
                             onClick={() => setCurrentImageIndex(index)}
-                            className={`shrink-0 rounded-lg overflow-hidden border-3 transition ${
+                            className={`shrink-0 rounded-lg overflow-hidden border-3 cursor-pointer transition ${
                                 currentImageIndex === index
                                     ? 'border-amber-200 opacity-100'
                                     : 'border-gray-300 opacity-60 hover:opacity-100'
                             }`}
                         >
                             <img
-                                src={image.url}
+                                src={image}
                                 alt={`thumbnail-${index}`}
                                 className="w-32 h-24 object-cover"
                             />
@@ -103,7 +83,7 @@ function ProjectDetails() {
                 <p className="text-lg text-gray-700">
                     <strong>About:</strong>{' '}
                     {
-                        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+                        'Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.'
                     }
                 </p>
                 <p className="text-lg text-gray-700">
