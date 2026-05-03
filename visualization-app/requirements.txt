@@ -1,0 +1,7 @@
+firebase-admin
+keybert
+transformers
+scikit-learn
+wordfreq
+pyyaml
+torch
