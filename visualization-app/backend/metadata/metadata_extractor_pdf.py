@@ -72,8 +72,9 @@ class MetadataExtractor:
             return {
                 "author": PathParser.extract_authors(file_path),
                 "technology": self.extract_technologies(text),
-                "tags": self.extract_tags(text)
+                "tags": self.extract_tags(text),
+                "text": text
             }
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
-            return {"author": "", "technology": "", "tags": ""}
+            return {"author": "", "technology": "", "tags": "", "text": ""}

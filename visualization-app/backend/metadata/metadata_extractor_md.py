@@ -1,5 +1,4 @@
 import re
-from pathlib import Path
 import logging
 
 from keybert import KeyBERT
@@ -62,44 +61,43 @@ class MarkdownExtractor:
         except Exception as e:
             logger.error(f"Error extracting keywords: {e}")
             return None
+    
+    def extract_tags(self, content: dict):
+        text = (
+                self._get_field(content, "Motivation") +
+                self._get_field(content, "Project Description (short project description 150-200 words)") +
+                self._get_field(content, "Explanation of the design choices")
+            )
+        tags = JsonYamlManager.load_yaml(TAGS_YAML)
+        found_tags = set()
+        for tag, examples in tags.items():
+            for example in examples:
+                if example.lower() in text:
+                    found_tags.add(tag)
+        return list(found_tags)
 
     def extract_metadata(self, content: dict[str, str | None]):
         authors_raw = self._get_field(content, "Authors")
         tech_raw = self._get_field(content, "Used technologies")
-
+        
         return {
             "name": self._get_field(content, "name"),
-            "authors": [line.lstrip("- ").strip() for line in authors_raw.split("\n") if line.strip()],
+            "author": [line.lstrip("- ").strip() for line in authors_raw.split("\n") if line.strip()],
             "technology": [re.sub(r"^\d+\.\s+", "", line) for line in tech_raw.split("\n") if line.strip()],
             "text": self._get_field(content, "Project Description (short project description 150-200 words)"),
             "link": self._get_field(content, "Link on project"),
-        }
+            "tags": self.extract_tags(content),
 
-    def parse_sections(self, file_path: Path) -> dict[str, str | None]:
-        try:
-            with open(file_path, encoding="utf-8") as f:
-                content = f.read()
-            project_name = re.search(r'^#\s+(.+)', content, re.MULTILINE)
-            sections = re.split(r'^##\s+', content, flags=re.MULTILINE)
-            result = {"name": project_name.group(1).strip() if project_name else None}
-            for section in sections[1:]:
-                lines = section.strip().split('\n')
-                heading = lines[0].strip()
-                body = '\n'.join(lines[1:]).strip()
-                result[heading] = body if body else None
-            return result
-        except Exception as e:
-            logger.error(f"Error reading file {file_path} : {e}")
-            return None
+        }
 
 
 def main():
-    md_pr = MarkdownExtractor()
-    path = Path(r"C:\Users\azhar\Desktop\example\511868-Danisova_Terezie-AMR_project_Danisova_Chupac_Postulka\AMR_project_Danisova_Chupac_Postulka\report.md")
-    content = md_pr.parse_sections(path)
-    print(md_pr.extract_metadata(content))
-    print(20 * "-")
-    print(md_pr.extract_keywords(content))
-
+    # md_pr = MarkdownExtractor()
+    # path = Path(r"C:\Users\azhar\Desktop\example\511868-Danisova_Terezie-AMR_project_Danisova_Chupac_Postulka\AMR_project_Danisova_Chupac_Postulka\report.md")
+    # content = md_pr.parse_sections(path)
+    # print(md_pr.extract_metadata(content))
+    # print(20 * "-")
+    # print(md_pr.extract_keywords(content))
+    pass
 
 main()

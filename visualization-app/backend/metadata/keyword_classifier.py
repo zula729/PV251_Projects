@@ -1,4 +1,4 @@
-from firebase import FirebaseClient
+from firebase import FirebasePushPDF
 from utils import JsonYamlManager
 
 from transformers import pipeline
@@ -9,7 +9,7 @@ class KeywordClassifier:
         self.classifier = pipeline("zero-shot-classification")
         self.score_threshold = score_threshold
 
-    def run_categorize(self, yaml_path: str, firebase: FirebaseClient) -> None:
+    def run_categorize(self, yaml_path: str, firebase: FirebasePushPDF) -> None:
         db_keywords = self._extract_firebase_keywords(firebase)
         tags = JsonYamlManager.load_yaml(yaml_path)
         tag_keywords = self._extract_tag_keywords(tags)
@@ -17,7 +17,7 @@ class KeywordClassifier:
         result_clean = self._classify_keywords(undefined_keywords, tags)
         JsonYamlManager.save_yaml(result_clean)
 
-    def _extract_firebase_keywords(self, firebase: FirebaseClient) -> set[str]:
+    def _extract_firebase_keywords(self, firebase: FirebasePushPDF) -> set[str]:
         keywords = set()
         db_data = firebase.fetch_all()
         for _, data in db_data.items():

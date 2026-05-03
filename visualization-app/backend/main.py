@@ -3,10 +3,9 @@ from pipeline import Pipeline
 
 
 def main() -> None:
-    path = Path(r"C:\Users\azhar\Desktop\visualization")
+    path = Path(r"C:\Users\azhar\Desktop\example")
     pipeline = Pipeline(
         root_dir=Path(path),
-        cred_path="credentials.json",
     )
     pipeline.run_upload()
 

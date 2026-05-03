@@ -1,22 +1,22 @@
 import sys
 import io
 from pathlib import Path
-
 sys.path.append(str(Path(__file__).parent))
 from utils import JsonYamlManager
 from processors import DocumentProcessor, ImageExtractor
 from metadata import MetadataExtractor, KeywordFilter, KeywordClassifier, MarkdownExtractor
-from firebase import FirebaseClient
+from firebase import FirebasePushPDF, FirebaseClient, FirebasePushMD
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 class Pipeline:
-    def __init__(self, root_dir: Path, cred_path: str = "credentials.json"):
+    def __init__(self, root_dir: Path):
         self.root_dir = root_dir
         self.doc_processor = DocumentProcessor()
         self.keyword_filter = KeywordFilter()
-        self.firebase = FirebaseClient(cred_path)
+        self.firebase_client = FirebaseClient()
+        self.firebase_pusher_md = FirebasePushMD()
         self.utils = JsonYamlManager()
         self.image_extractor = ImageExtractor()
         self._pdf_extractor = None
@@ -58,8 +58,6 @@ class Pipeline:
         return paths
 
     def run_upload(self) -> None:
-        # self.firebase.upload_metadata(self.files, self.extractor, self.doc_processor)
-        # self.firebase.upload_keywords(self.files, self.extractor, self.doc_processor, self.keyword_filter)
-        # self.firebase.upload_images(self.images)
-        self.firebase.push_text(self.files, self.doc_processor)
-
+        self.firebase_pusher_md.push_metadata(self.files)
+        self.firebase_pusher_md.push_keywords(self.files)
+        self.firebase_pusher_md.push_images(self.images)
