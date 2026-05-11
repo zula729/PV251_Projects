@@ -1,7 +1,18 @@
-# The Docker image that will be used to build your app
 image: node:latest
 
 pages:
   stage: deploy
+  tags:
+    - shared-fi # TATO ČÁST JE KLÍČOVÁ PRO FI MUNI
+  before_script:
+    - cd visualization-app
+    - npm install # Na školních serverech je npm install jistota
   script:
     - npm run build
+    - cd ..
+    - mv visualization-app/dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
