@@ -2,6 +2,8 @@ image: node:latest
 
 pages:
   stage: deploy
+  tags:
+    - shared-fi
   script:
     - cd visualization-app # Vstoupí do složky s frontendem
     - npm install # Nainstaluje závislosti
