@@ -1,0 +1,15 @@
+image: node:latest
+
+pages:
+  stage: deploy
+  script:
+    - cd visualization-app # Vstoupí do složky s frontendem
+    - npm install # Nainstaluje závislosti
+    - npm run build # Vytvoří produkční verzi (složka dist)
+    - cd .. # Vrátí se zpět
+    - mv visualization-app/dist public # Přejmenuje složku dist na public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main # Nebo 'master', podle toho, jak se jmenuje vaše hlavní větev
