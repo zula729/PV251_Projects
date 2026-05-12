@@ -8,26 +8,19 @@ This project consists of two main parts:
 
 The backend is responsible for:
 
-Collecting projects from a structured folder system
-Extracting metadata, keywords, and images from reports (Markdown/PDF)
-Processing and classifying data using NLP tools
-Uploading structured data to Firebase Realtime Database and Storage
+Collecting projects from a structured folder system. Extracting metadata, keywords, and images from reports (Markdown/PDF). Processing and classifying data using NLP tools. Uploading structured data to Firebase Realtime Database and Storage
 
 ### Frontend
 
-The frontend is a visualization web application that:
-
-Displays projects, keywords, and technologies
-Allows users to explore and filter projects
-Uses data stored in Firebase
+#### need to be added
 
 #### Live app: https://bachelor-cc64fb.pages.fi.muni.cz/#/home
 
 The frontend depends entirely on correctly processed and uploaded backend data.
 
-### Important
+#### Important
 
-The frontend does NOT process data itself. All data must be prepared and uploaded via the backend pipeline.
+_The frontend does NOT process data itself. All data must be prepared and uploaded via the backend pipeline._
 
 ## Deploy app
 
